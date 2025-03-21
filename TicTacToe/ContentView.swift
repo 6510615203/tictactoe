@@ -4,6 +4,7 @@ struct ContentView: View {
     @State var moves: [Move?] = Array(repeating: nil, count: 9)
     @State var isGameBoardDisabled = false
     @State var checkFinishStatus = false
+    @State var switchFirstMove =   false
 
     
     var body: some View {
@@ -47,7 +48,15 @@ struct ContentView: View {
             .navigationTitle("Tic Tac Toe")
         }
     }
-
+    
+    func switchPlayer() {
+        if switchFirstMove {
+            if computerPlay() { return }
+            isGameBoardDisabled.toggle()
+        } else {
+            isGameBoardDisabled = false
+        }
+    }
 
 
     func humanPlay(at index: Int) -> Bool {
@@ -105,7 +114,11 @@ struct ContentView: View {
     func restartGame() {
         moves = Array(repeating: nil, count: 9)
         checkFinishStatus = false
-        isGameBoardDisabled = false
+        isGameBoardDisabled = true
+        switchFirstMove.toggle()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            switchPlayer()
+            }
     }
 }
 
