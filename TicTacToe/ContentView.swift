@@ -3,11 +3,13 @@ import SwiftUI
 struct ContentView: View {
     @State var moves: [Move?] = Array(repeating: nil, count: 9)
     @State var isGameBoardDisabled = false
+    @State var checkFinishStatus = false
 
     
     var body: some View {
         NavigationView {
             VStack {
+                Spacer()
                 LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
                     ForEach(0..<9) { index in
                         CellView(mark: moves[index]?.mark ?? "")
@@ -28,29 +30,35 @@ struct ContentView: View {
                 .padding()
                 .disabled(isGameBoardDisabled)
                 
-       
-                    Button(action: restartGame) {
-                        Text("Restart")
-                            .font(.title)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    
-                    .padding(.top)
+                Button(action: restartGame) {
+                    Text("Play Again")
+                        .font(.title)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                 }
+                .opacity(checkFinishStatus ? 1 : 0)
+                .disabled(!checkFinishStatus)
+                .animation(.easeInOut, value: checkFinishStatus)
+
+                Spacer()
             }
             .navigationTitle("Tic Tac Toe")
         }
     }
 
+
+
     func humanPlay(at index: Int) -> Bool {
         moves[index] = Move(player: .human, boardIndex: index)
         if checkWinCondition(for: .human, in: moves) {
             print("You won!")
+            checkFinishStatus = true
             return true
         }
         if checkForDraw(in: moves) {
+            checkFinishStatus = true
             print("Draw")
             return true
         }
@@ -61,6 +69,7 @@ struct ContentView: View {
         let computerPosition = determineComputerMovePosition(in: moves)
         moves[computerPosition] = Move(player: .computer, boardIndex: computerPosition)
         if checkWinCondition(for: .computer, in: moves) {
+            checkFinishStatus = true
             print("You lost!")
             return true
         }
@@ -95,6 +104,7 @@ struct ContentView: View {
 
     func restartGame() {
         moves = Array(repeating: nil, count: 9)
+        checkFinishStatus = false
         isGameBoardDisabled = false
     }
 }
@@ -127,7 +137,7 @@ struct Move {
     let boardIndex: Int
     
     var mark: String {
-        player == .human ? "xmark" : "circle"
+        player == .human ? "circle" : "xmark"
     }
 }
 
