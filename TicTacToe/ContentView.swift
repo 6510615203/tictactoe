@@ -5,10 +5,10 @@ struct ContentView: View {
     @State var isGameBoardDisabled = false
     @State var checkFinishStatus = false
     @State var switchFirstMove =   false
-
+    
     
     var body: some View {
-        NavigationView {
+       NavigationView {
             VStack {
                 Spacer()
                 LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
@@ -25,7 +25,7 @@ struct ContentView: View {
                                     if computerPlay() { return }
                                     isGameBoardDisabled.toggle()
                                 }
-                            }
+                           }
                     }
                 }
                 .padding()
@@ -42,11 +42,11 @@ struct ContentView: View {
                 .opacity(checkFinishStatus ? 1 : 0)
                 .disabled(!checkFinishStatus)
                 .animation(.easeInOut, value: checkFinishStatus)
-
+                
                 Spacer()
             }
             .navigationTitle("Tic Tac Toe")
-        }
+       }
     }
     
     func switchPlayer() {
@@ -57,8 +57,8 @@ struct ContentView: View {
             isGameBoardDisabled = false
         }
     }
-
-
+    
+    
     func humanPlay(at index: Int) -> Bool {
         moves[index] = Move(player: .human, boardIndex: index)
         if checkWinCondition(for: .human, in: moves) {
@@ -80,6 +80,11 @@ struct ContentView: View {
         if checkWinCondition(for: .computer, in: moves) {
             checkFinishStatus = true
             print("You lost!")
+            return true
+        }
+        if checkForDraw(in: moves) {
+            checkFinishStatus = true
+            print("Draw")
             return true
         }
         return false
@@ -104,13 +109,59 @@ struct ContentView: View {
     }
     
     func determineComputerMovePosition(in moves: [Move?]) -> Int {
-        var movePosition = Int.random(in: 0..<9)
-        while isCellOccupied(in: moves, forIndex: movePosition) {
-            movePosition = Int.random(in: 0..<9)
+        let winPatterns: [Set<Int>] = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+        let almostWinPatterns: [Set<Int>] = [[0,1],[1,2],[3,4],[4,5],[6,7],[7,8],[0,3],[3,6],[1,4],[4,7],[2,5],[5,8],[0,4],[4,8],[2,4],[4,6],[0,2],[3,5],[6,8],[0,6],[1,7],[2,8],[2,6],[0,8]]
+        let humanMoves = moves.compactMap { $0 }.filter { $0.player == .human }
+        let computerMoves = moves.compactMap { $0 }.filter { $0.player == .computer }
+        let humanPositions = Set(humanMoves.map { $0.boardIndex })
+        let computerPositions = Set(computerMoves.map { $0.boardIndex })
+        var movePosition: Int
+        var almostWinPosition: Set<Int> = []
+        var blockOpponent: Set<Int> = []
+        var middlePosition: Set<Int> = [4]
+        for pattern in almostWinPatterns where pattern.isSubset(of: computerPositions){
+            for winPattern in winPatterns {
+                if pattern.isSubset(of: winPattern) {
+                    let newPosition = winPattern.subtracting(pattern)
+                    newPosition.first.map { almostWinPosition.insert($0) }
+                    print("Computer almost win")
+                    print(almostWinPosition)
+                }
+            }
         }
+        for pattern2 in almostWinPatterns where pattern2.isSubset(of: humanPositions){
+            for winPattern2 in winPatterns {
+                if pattern2.isSubset(of: winPattern2) {
+                    let newPosition = winPattern2.subtracting(pattern2)
+                    newPosition.first.map { blockOpponent.insert($0) }
+                    print("Human almost win")
+                    print(blockOpponent)
+                }
+            }
+        }
+        
+        repeat {
+            if let position = almostWinPosition.first {
+                movePosition = position
+                almostWinPosition.remove(position)
+            }
+            else if let position = blockOpponent.first {
+                movePosition = position
+                blockOpponent.remove(position)
+            }
+            else if let position = middlePosition.first {
+                movePosition = position
+                middlePosition.removeAll()
+            } else {
+                movePosition = Int.random(in: 0..<9)
+            }
+            print("Computer should move position: \(movePosition)")
+            
+        } while isCellOccupied(in: moves, forIndex: movePosition)
+        
         return movePosition
     }
-
+    
     func restartGame() {
         moves = Array(repeating: nil, count: 9)
         checkFinishStatus = false
@@ -118,7 +169,7 @@ struct ContentView: View {
         switchFirstMove.toggle()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             switchPlayer()
-            }
+        }
     }
 }
 
