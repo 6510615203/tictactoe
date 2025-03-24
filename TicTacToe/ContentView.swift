@@ -5,12 +5,20 @@ struct ContentView: View {
     @State var isGameBoardDisabled = false
     @State var checkFinishStatus = false
     @State var switchFirstMove =   false
+    @State var showAlert = false
+    @State var alertMessage = ""
     
     
     var body: some View {
        NavigationView {
             VStack {
                 Spacer()
+                Text("Tic Tac Toe")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.purple)
+                    .padding()
+                
                 LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
                     ForEach(0..<9) { index in
                         CellView(mark: moves[index]?.mark ?? "")
@@ -39,13 +47,18 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
-                .opacity(checkFinishStatus ? 1 : 0)
-                .disabled(!checkFinishStatus)
-                .animation(.easeInOut, value: checkFinishStatus)
+                
+
                 
                 Spacer()
             }
-            .navigationTitle("Tic Tac Toe")
+           
+            .alert(isPresented: $showAlert) {
+                Alert(
+                    title: Text(alertMessage),
+                    dismissButton: .default(Text("Play again"), action: restartGame)
+                )
+            }
        }
     }
     
@@ -64,10 +77,14 @@ struct ContentView: View {
         if checkWinCondition(for: .human, in: moves) {
             print("You won!")
             checkFinishStatus = true
+            alertMessage = "You Win 🥳"
+            showAlert = true
             return true
         }
         if checkForDraw(in: moves) {
             checkFinishStatus = true
+            alertMessage = "It's a Draw 😉"
+            showAlert = true
             print("Draw")
             return true
         }
@@ -79,11 +96,15 @@ struct ContentView: View {
         moves[computerPosition] = Move(player: .computer, boardIndex: computerPosition)
         if checkWinCondition(for: .computer, in: moves) {
             checkFinishStatus = true
+            alertMessage = "You Lose 😰"
+            showAlert = true
             print("You lost!")
             return true
         }
         if checkForDraw(in: moves) {
             checkFinishStatus = true
+            alertMessage = "It's a Draw 😉"
+            showAlert = false
             print("Draw")
             return true
         }
@@ -166,6 +187,7 @@ struct ContentView: View {
         moves = Array(repeating: nil, count: 9)
         checkFinishStatus = false
         isGameBoardDisabled = true
+        alertMessage = ""
         switchFirstMove.toggle()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             switchPlayer()
@@ -178,13 +200,13 @@ struct CellView: View {
     
     var body: some View {
         ZStack {
-            Color.blue.opacity(0.5)
+            Color.purple.opacity(0.5)
                 .frame(width: squareSize, height: squareSize)
                 .cornerRadius(15)
             Image(systemName: mark)
                 .resizable()
                 .frame(width: markSize, height: markSize)
-                .foregroundColor(.white)
+                .foregroundColor(.yellow)
         }
     }
     
