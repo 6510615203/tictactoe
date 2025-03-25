@@ -43,7 +43,7 @@ struct ContentView: View {
                     Text("Play Again")
                         .font(.title)
                         .padding()
-                        .background(Color.blue)
+                        .background(Color.pink.opacity(0.7))
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
@@ -104,7 +104,7 @@ struct ContentView: View {
         if checkForDraw(in: moves) {
             checkFinishStatus = true
             alertMessage = "It's a Draw 😉"
-            showAlert = false
+            showAlert = true
             print("Draw")
             return true
         }
